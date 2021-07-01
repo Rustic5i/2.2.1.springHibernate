@@ -2,15 +2,12 @@ package hiber.dao;
 
 import hiber.model.Car;
 import hiber.model.User;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.exception.ConstraintViolationException;
-import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 
-import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
@@ -43,16 +40,29 @@ public class UserDaoImp implements UserDao {
     @Transactional
     @Override
     public User getUserByModelCarSeries(String model, int series) {
-        String HQL2 = "FROM Car car WHERE car.model = :model AND car.series = :series";
-        Car findCarQuery = sessionFactory.getCurrentSession().createQuery(HQL2, Car.class)
-                .setParameter("model", model)
+        User user =sessionFactory.getCurrentSession().createQuery("SELECT user FROM User user " +
+                "WHERE user.car.model = :model AND user.car.series = :series",User.class)
+                .setParameter("model",model)
                 .setParameter("series", series)
                 .uniqueResult();
-        try {
-            return findCarQuery.getUser();
-        } catch (NullPointerException e) {
+        if (user == null){
             System.out.println("User не найден");
             return null;
         }
+        return user;
+    }
+    @Transactional
+    @Override
+    public User getUserByModelCarSeries(Car car) {
+        User user =sessionFactory.getCurrentSession().createQuery("SELECT user FROM User user " +
+                "WHERE user.car.model = :model AND user.car.series = :series",User.class)
+                .setParameter("model",car.getModel())
+                .setParameter("series",car.getSeries())
+                .uniqueResult();
+        if (user == null){
+            System.out.println("User не найден");
+            return null;
+        }
+        return user;
     }
 }
